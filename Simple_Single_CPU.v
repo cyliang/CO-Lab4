@@ -7,13 +7,17 @@ input         rst_n;
 //Internal Signals
 wire [32-1:0] instruction, regWriteData, readData1, readData2, 
 				ALU_result, Shifter_result, ALU_Shifter_result;
-wire RegDst, RegWrite, ALUSrc, Jump, Branch, BranchType, MemWrite, MemRead, MemtoReg, ALU_zero;
+wire RegWrite, ALUSrc, Jump, Branch, BranchType, MemWrite, MemRead, ALU_zero;
+wire [2-1:0] RegDst, MemtoReg;
 wire [3-1:0] ALUOP;
 wire [32-1:0] instance_signExtend, instance_zeroFilled;
 
 //modules
+wire jrCalled;
+assign jrCalled = (instruction[31:26] == 6'b000000 && instruction[20:0] == 21'd8) ? 1'b1 : 1'b0;
+
 wire [32-1:0] program_now, program_suppose, program_next,
-			program_after_branch, program_no_jump;
+			program_after_branch, program_no_jump, program_no_jumpReg;
 
 Program_Counter PC(
         .clk_i(clk_i),      
@@ -45,6 +49,13 @@ Mux2to1 #(.size(32)) Mux_jump_or_not(
         .data0_i(program_no_jump),
         .data1_i({program_suppose[31:28], instruction[25:0], 2'b00}),
         .select_i(Jump),
+        .data_o(program_no_jumpReg)
+        );
+
+Mux2to1 #(.size(32)) Mux_jumpReg_or_not(
+        .data0_i(program_no_jumpReg),
+        .data1_i(readData1),
+        .select_i(jrCalled),
         .data_o(program_next)
         );
 	
@@ -55,12 +66,13 @@ Instr_Memory IM(
 
 wire [5-1:0] writeReg_addr;
 		
-Mux2to1 #(.size(5)) Mux_Write_Reg(
+Mux3to1 #(.size(5)) Mux_Write_Reg(
         .data0_i(instruction[20:16]),
         .data1_i(instruction[15:11]),
+		.data2_i(5'd31),
         .select_i(RegDst),
         .data_o(writeReg_addr)
-        );	
+        );
 		
 Reg_File RF(
         .clk_i(clk_i),      
@@ -69,7 +81,7 @@ Reg_File RF(
         .RTaddr_i(instruction[20:16]) ,  
         .RDaddr_i(writeReg_addr) ,  
         .RDdata_i(regWriteData)  , 
-        .RegWrite_i(RegWrite),
+        .RegWrite_i(RegWrite & (~jrCalled)),
         .RSdata_o(readData1) ,  
         .RTdata_o(readData2)   
         );
@@ -161,9 +173,10 @@ Data_Memory DM(
 		.data_o(MemReadData)
 		);		
 
-Mux2to1 #(.size(32)) Mux_FURslt_or_Memory(
+Mux3to1 #(.size(32)) Mux_FURslt_or_Memory_or_linkAddr(
 		.data0_i(ALU_Shifter_result),
 		.data1_i(MemReadData),
+		.data2_i(program_suppose),
 		.select_i(MemtoReg),
 		.data_o(regWriteData)
 		);
