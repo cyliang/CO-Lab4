@@ -14,30 +14,20 @@ wire		[2-1:0] FURslt_o;
 //Main function
 
 
-assign ALU_operation_o = ({ALUOp_i,funct_i}==9'b010_100000 || ALUOp_i == 3'b100) ? 5'b00010 : //add addi
-						 ({ALUOp_i,funct_i}==9'b010_100010) ? 5'b01010 : //sub
-						 ({ALUOp_i,funct_i}==9'b010_100100) ? 5'b00000 : //and
-						 ({ALUOp_i,funct_i}==9'b010_100101) ? 5'b00001 : //or
-						 ({ALUOp_i,funct_i}==9'b010_101111) ? 5'b10110 : //not
-						 ({ALUOp_i,funct_i}==9'b010_101010) ? 5'b01011 : //slt
-						 ({ALUOp_i,funct_i}==9'b010_000000) ? 5'b00001 : //sll
-						 ({ALUOp_i,funct_i}==9'b010_000010) ? 5'b00000 : //srl
-						 ({ALUOp_i,funct_i}==9'b010_000100) ? 5'b00011 : 5'b00010; //sllv srlv
+assign ALU_operation_o = ({ALUOp_i,funct_i} == 9'b010_100000 || ALUOp_i[1:0] == 2'b00) ? 5'b00010 : //add addi lw sw
+						 ({ALUOp_i,funct_i} == 9'b010_100010 || ALUOp_i == 3'b001 || ALUOp_i == 3'b110) ? 5'b01010 : //sub beq bne
+						 ({ALUOp_i,funct_i} == 9'b010_100100) ? 5'b00000 : //and
+						 ({ALUOp_i,funct_i} == 9'b010_100101) ? 5'b00001 : //or
+						 ({ALUOp_i,funct_i} == 9'b010_101111) ? 5'b10110 : //not
+						 ({ALUOp_i,funct_i} == 9'b010_101010) ? 5'b01011 : //slt
+						 ({ALUOp_i,funct_i} == 9'b010_000000) ? 5'b00001 : //sll
+						 ({ALUOp_i,funct_i} == 9'b010_000010) ? 5'b00000 : //srl
+						 ({ALUOp_i,funct_i} == 9'b010_000100) ? 5'b00011 : 5'b00010; //sllv srlv
 
 						 
 
-assign FURslt_o = ({ALUOp_i,funct_i}==9'b010_100000) ? 0 : //add
-		 		  ({ALUOp_i,funct_i}==9'b010_100010) ? 0 : //sub
-				  ({ALUOp_i,funct_i}==9'b010_100100) ? 0 : //and
-				  ({ALUOp_i,funct_i}==9'b010_100101) ? 0 : //or
-				  ({ALUOp_i,funct_i}==9'b010_101111) ? 0 : //not
-				  ({ALUOp_i,funct_i}==9'b010_101010) ? 0 : //slt
-				  ({ALUOp_i,funct_i}==9'b010_000000) ? 1 : //sll
-				  ({ALUOp_i,funct_i}==9'b010_000010) ? 1 : //srl
-				  ({ALUOp_i,funct_i}==9'b010_000100) ? 1 : //sllv
-				  ({ALUOp_i,funct_i}==9'b010_000110) ? 1 : //srlv
-				  (ALUOp_i==3'b100) ? 0 : 2; //addi lui					 
-						 
-				
+assign FURslt_o = 	(ALUOp_i == 3'b101) ? 2'd2 : //lui
+					(ALUOp_i == 3'b010 && {funct_i[5:3],funct[0]} == 4'b0000) ? 2'd1 : //sll srl sllv srlv
+					0; //others
 
 endmodule     
