@@ -27,7 +27,7 @@ assign ALU_operation_o = ({ALUOp_i,funct_i} == 9'b010_100000 || ALUOp_i[1:0] == 
 						 
 
 assign FURslt_o = 	(ALUOp_i == 3'b101) ? 2'd2 : //lui
-					(ALUOp_i == 3'b010 && {funct_i[5:3],funct[0]} == 4'b0000) ? 2'd1 : //sll srl sllv srlv
+					(ALUOp_i == 3'b010 && {funct_i[5:3],funct_i[0]} == 4'b0000) ? 2'd1 : //sll srl sllv srlv
 					0; //others
 
 endmodule     
