@@ -7,7 +7,7 @@ input         rst_n;
 //Internal Signals
 wire [32-1:0] instruction, regWriteData, readData1, readData2, 
 				ALU_result, Shifter_result, ALU_Shifter_result;
-wire RegDst, RegWrite, ALUSrc, Jump, Branch, BranchType, MemWrite, MemRead, MemtoReg;
+wire RegDst, RegWrite, ALUSrc, Jump, Branch, BranchType, MemWrite, MemRead, MemtoReg, ALU_zero;
 wire [3-1:0] ALUOP;
 wire [32-1:0] instance_signExtend, instance_zeroFilled;
 
@@ -116,8 +116,6 @@ Mux2to1 #(.size(32)) ALU_src2Src(
         .select_i(ALUSrc),
         .data_o(ALUinp2)
         );	
-		
-wire ALU_zero;
 		
 ALU ALU(
 		.aluSrc1(readData1),
