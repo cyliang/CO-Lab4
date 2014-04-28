@@ -1,0 +1,68 @@
+# Set the array's length (n) in $a1 (5)
+			addi	$a1, $zero, 5
+# Set the array pointer (v) in $a0 (0)
+			add		$a0, $zero, $zero
+# Set the content of the array (5 4 3 2 1)
+			add		$t0, $a0, $zero		# $t0 = $a0 (0)
+			add		$t1, $zero, $a1		# $t1 = $a1 (5)
+Set:		sw		$t1, 0($t0)			# do {	*$t0 = $t1
+			addi	$t0, $t0, 4			#		$t0 += 4
+			addi	$t1, $t1, -1		#		$t1--
+			bne		$t1, $zero, Set		# } while($t1 != 0);
+
+
+
+
+# the array pointer (v) is in a0, the array's length (n) is in a1.
+# ----------------------------------------------------
+			add		$s2, $a1, $zero			# $s2 = $a1 (n);
+			
+# for( $s1 = 0; $s1 < $s2; $s1++ ) {		# Where $s2 represent n
+			add		$s1, $zero, $zero		# $s1 = 0;
+L_outter:	slt		$t0, $s1, $s2			# $t0 = $s1 < $s2(n) ? 1 : 0;
+			beq		$t0, $zero, L_end			# Branch to L_end if !($s1 < n);
+			
+#	for( $s0 = $s1 - 1; $s0 >= 0; $s0-- ) {
+			addi	$s0, $s1, -1			# $s0 = $s1 - 1;
+L_inner:	slt		$t0, $s0, $zero			# $t0 = $s0 < 0 ? 1 : 0;
+			bne		$t0, $zero, L_innerend	# Branch to L_innerend if !($s0 >= 0);
+			
+#		Compare v[$s0] and v[$s0+1]. Swap if v[$s0] > v[$s0 + 1].
+			sll		$t0, $s0, 2				# $t0 = $s0 * 4;
+			add		$t1, $a0, $t0			# $t1 = v + $s0 * 4;
+			lw		$t2, 0($t1)				# $t2 = v[$s0];
+			lw		$t3, 4($t1)				# $t3 = v[$s0 + 1];
+			slt		$t0, $t3, $t2			# $t0 = $t2 > $t3 ? 1 : 0;
+			beq		$t0, $zero, L_innerend	# Branch to L_innerend if !(v[$s0] > v[$s0 + 1]);
+			
+			add		$a1, $s0, $zero			# $a1 = $s0;
+			jal		swap					# Jump to procedure swap.
+			
+			addi	$s0, $s0, -1			# $s0--;
+			j		L_inner					# Loop L_inner
+			
+#	}
+L_innerend:	addi	$s1, $s1, 1				# $s1++;
+			j		L_outter				# Loop L_outter		
+# }
+
+
+
+
+
+#------------------------- procedure swap (v = $a0, k = $a1) ------------
+#		Exchange v[k] and v[k+1]
+# load arguments v in a0, k in a1. $a0 = v; $a1 = k;
+swap:		sll		$t0, $a1, 2				# $t0 = k * 4;
+			add		$t1, $a0, $t0			# $t1 = v + k * 4;
+			lw		$t2, 0($t1)				# $t2 = v[k];
+			lw		$t3, 4($t1)				# $t3 = v[k+1];
+			sw		$t3, 0($t1)				# v[k] = $t3;
+			sw		$t2, 4($t1)				# v[k+1] = $t2;
+			jr		$ra						# Return to caller
+
+			
+			
+			
+#------------ End ----------------
+L_end:		nop
