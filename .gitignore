@@ -221,3 +221,4 @@ work/_info
 work/_vmake
 *.mti
 CO_P4_result.txt
+*.wlf
